@@ -1,10 +1,11 @@
 {
-  "name": "resurgensAPI",
+  "name": "resurgens-api",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "csv-parse": "^4.15.3"
+    "csv-parse": "^4.15.3",
+    "express": "^4.17.1"
   },
   "devDependencies": {},
   "scripts": {
