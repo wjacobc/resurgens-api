@@ -2,7 +2,6 @@ const parse = require("csv-parse/lib/sync");
 const fs = require("fs");
 const util = require("./util");
 
-
 routesFile = fs.readFileSync("./data/routes.txt", "utf8");
 routesData = parse(routesFile, {columns: true});
 
@@ -60,5 +59,17 @@ function getStartEndStop(tripId) {
     let endStop = stopsData.find(stop => stop.stop_id == endStopId).stop_name;
 
     console.log(util.toTitleCase(startStop) + " -> " + util.toTitleCase(endStop));
+}
+
+const arrivals = getArrivalsByStop();
+
+function getUpcomingArrivals(stopId, numToGet = 3) {
+    arrivalsThisStop = arrivals[stopId];
+    upcomingArrivals = arrivalsThisStop.filter(arrival =>
+        util.timeIsFuture(arrival.arrival_time) && util.arrivalDayMatches(arrival));
+    sortedArrivals = upcomingArrivals.sort((a, b) =>
+        (a.arrival_time > b.arrival_time) ? 1 : -1);
+
+    return sortedArrivals.slice(0, numToGet);
 }
 
