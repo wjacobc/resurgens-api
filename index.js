@@ -22,7 +22,6 @@ arrivalsData = parse(arrivalsFile, {columns: true});
 function getArrivalsByStop() {
     arrivalsByStop = {}
 
-
     arrivalsData.forEach(arrival => {
         let stopId = arrival.stop_id;
         let trip = tripsData.find(trip => trip.trip_id == arrival.trip_id);
@@ -53,17 +52,37 @@ function getArrivalsByStop() {
     return arrivalsByStop;
 }
 
-function getStartEndStop(tripId) {
-    let trip_arrivals = arrivalsData.filter(arrival =>
+function getDestination(tripId) {
+    let tripArrivals = arrivalsData.filter(arrival =>
         arrival.trip_id == tripId);
 
-
-    let startStopId = trip_arrivals[0].stop_id;
-    let endStopId = trip_arrivals[trip_arrivals.length - 1].stop_id;
+    let startStopId = tripArrivals[0].stop_id;
+    let endStopId = tripArrivals[tripArrivals.length - 1].stop_id;
     let startStop = stopsData.find(stop => stop.stop_id == startStopId).stop_name;
     let endStop = stopsData.find(stop => stop.stop_id == endStopId).stop_name;
 
-    console.log(util.toTitleCase(startStop) + " -> " + util.toTitleCase(endStop));
+    const trip = tripsData.find(trip => trip.trip_id == tripId);
+
+    if (trip.direction_id == 1) {
+        return util.toTitleCase(endStop);
+    } else {
+        return util.toTitleCase(startStop);
+    }
+}
+
+function getDescription(tripId) {
+    const trip = tripsData.find(trip => trip.trip_id == tripId);
+    if (trip.trip_headsign != "") {
+        let headsign_split = trip.trip_headsign.split(" ");
+        if (headsign_split.includes("Route")) {
+            return util.trimHeadsign(headsign_split);
+        } else {
+            return trip.trip_headsign;
+        }
+    } else {
+        const route = routesData.find(route => trip.route_id == route.route_id);
+        return route.route_long_name;
+    }
 }
 
 const arrivals = getArrivalsByStop();
@@ -78,14 +97,41 @@ function getUpcomingArrivals(stopId, numToGet = 3) {
     return sortedArrivals.slice(0, numToGet);
 }
 
+function getArrivalsInFormat(stopId) {
+    const upcomingArrivals = getUpcomingArrivals(stopId);
+    const formattedArrivals = [];
+
+    upcomingArrivals.forEach(arrival => {
+        formatted = {};
+        formatted["timeToArrival"] = util.getTimeToArrival(arrival.arrival_time);
+        formatted["route"] = arrival.route_num;
+        formatted["description"] = getDescription(arrival.trip_id);
+        formattedArrivals.push(formatted);
+    });
+
+    return formattedArrivals;
+}
+
 express.listen(PORT, () => console.log("Accepting connections on port " + PORT));
 
 express.get("/getArrivalsByStopId/:stopId", (req, res) => {
     const { stopId } = req.params;
     try {
-        const upcomingArrivals = getUpcomingArrivals(stopId);
-        res.status(NOT_FOUND).send(upcomingArrivals);
+        const upcomingArrivals = getArrivalsInFormat(stopId);
+        res.status(STATUS_OK).send(upcomingArrivals);
     } catch (TypeError) {
-        res.status(404).send("That stop does not exist, please try again.");
+        res.status(NOT_FOUND).send("That stop does not exist, please try again.");
     }
+});
+
+express.get("/getArrivalsMultipleStops/:stops", (req, res) => {
+    const { stops } = req.params;
+    const stopArray = stops.split(",");
+    const arrivals = {};
+
+        stopArray.forEach(stop => {
+            arrivals[stop] = getArrivalsInFormat(stop);
+        });
+        res.status(STATUS_OK).send(arrivals);
+
 });

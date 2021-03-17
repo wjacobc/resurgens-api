@@ -72,5 +72,40 @@ module.exports = {
     arrivalDayMatches: function(arrival) {
         const day = getDayString();
         return day == arrival.type;
+    },
+
+    getTimeToArrival: function(time) {
+        const now = new Date();
+        const currentHour = parseInt(now.getHours());
+        const currentMinutes = parseInt(now.getMinutes());
+
+        const timeSplit = time.split(":");
+        const otherHour = parseInt(timeSplit[0]);
+        const otherMinutes = parseInt(timeSplit[1]);
+
+        let hourDifference = otherHour - currentHour;
+        let minuteDifference = otherMinutes - currentMinutes;
+
+        if (minuteDifference < 0) {
+            hourDifference = hourDifference - 1;
+            minuteDifference = minuteDifference + 60;
+        }
+
+        if (hourDifference == 0) {
+            return minuteDifference + "m";
+        } else {
+            return hourDifference + "h " + minuteDifference + "m";
+        }
+    },
+
+    trimHeadsign: function(headsign_list) {
+        let route_index = headsign_list.indexOf("Route");
+        let headsign_minus_route =
+            headsign_list.slice(route_index + 2, headsign_list.length);
+        let headsign_fixed = headsign_minus_route.join(" ");
+
+        headsign_fixed = headsign_fixed.replace("-", " ");
+        headsign_fixed = headsign_fixed.trim();
+        return headsign_fixed;
     }
 }
