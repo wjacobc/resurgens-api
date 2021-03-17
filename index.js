@@ -1,6 +1,11 @@
 const parse = require("csv-parse/lib/sync");
 const fs = require("fs");
 const util = require("./util");
+const express = require("express")();
+
+const PORT = 3979;
+const STATUS_OK = 200;
+const NOT_FOUND = 404;
 
 routesFile = fs.readFileSync("./data/routes.txt", "utf8");
 routesData = parse(routesFile, {columns: true});
@@ -73,3 +78,14 @@ function getUpcomingArrivals(stopId, numToGet = 3) {
     return sortedArrivals.slice(0, numToGet);
 }
 
+express.listen(PORT, () => console.log("Accepting connections on port " + PORT));
+
+express.get("/getArrivalsByStopId/:stopId", (req, res) => {
+    const { stopId } = req.params;
+    try {
+        const upcomingArrivals = getUpcomingArrivals(stopId);
+        res.status(NOT_FOUND).send(upcomingArrivals);
+    } catch (TypeError) {
+        res.status(404).send("That stop does not exist, please try again.");
+    }
+});
