@@ -1,3 +1,5 @@
+const fs = require("fs");
+
 const getDayString = function() {
     const now = new Date();
     const dayOfWeek = now.getDay();
@@ -9,6 +11,22 @@ const getDayString = function() {
     } else {
         return "weekday";
     }
+}
+
+const insertSpacesAroundAt = function(str) {
+    let splitAt = str.split("@");
+    let firstWord = splitAt[0];
+    let secondWord = splitAt[1];
+
+    if (firstWord[firstWord.length - 1] != " ") {
+        firstWord = firstWord + " ";
+    }
+
+    if (secondWord[0] != " ") {
+        secondWord = " " + secondWord;
+    }
+
+    return firstWord + "@" + secondWord;
 }
 
 module.exports = {
@@ -29,6 +47,11 @@ module.exports = {
 
     toTitleCase: function(str) {
         let allowedWords = ["NW", "NE", "SW", "SE"];
+
+        if (str.includes("@")) {
+            str = insertSpacesAroundAt(str);
+        }
+
         let words = str.split(" ");
         let fixedWords = []
 
@@ -107,5 +130,19 @@ module.exports = {
         headsign_fixed = headsign_fixed.replace("-", " ");
         headsign_fixed = headsign_fixed.trim();
         return headsign_fixed;
+    },
+
+    getLastUpdated: function() {
+        const lastUpdatedPath = "./data/last_updated.txt";
+        let lastUpdated = "";
+
+        if (!fs.existsSync(lastUpdatedPath)) {
+            fs.writeFileSync(lastUpdatedPath, new Date().toDateString());
+            lastUpdated = new Date().toDateString();
+        } else {
+            lastUpdated = fs.readFileSync("./data/last_updated.txt", "utf8");
+        }
+
+        return lastUpdated;
     }
 }

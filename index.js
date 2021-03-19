@@ -19,6 +19,8 @@ tripsData = parse(tripsFile, {columns: true});
 arrivalsFile = fs.readFileSync("./data/stop_times.txt");
 arrivalsData = parse(arrivalsFile, {columns: true});
 
+const lastUpdated = util.getLastUpdated();
+
 function getArrivalsByStop() {
     arrivalsByStop = {}
 
@@ -135,3 +137,13 @@ express.get("/getArrivalsMultipleStops/:stops", (req, res) => {
         res.status(STATUS_OK).send(arrivals);
 
 });
+
+express.get("/getStopInformation", (req, res) => {
+    stopsData.forEach(stop => stop.stop_name = util.toTitleCase(stop.stop_name));
+    res.status(STATUS_OK).send(stopsData);
+});
+
+express.get("/getLastUpdated", (req, res) => {
+    res.status(STATUS_OK).send(lastUpdated);
+});
+
