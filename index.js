@@ -7,17 +7,23 @@ const PORT = 3979;
 const STATUS_OK = 200;
 const NOT_FOUND = 404;
 
+process.title = "resurgens";
+
 routesFile = fs.readFileSync("./data/routes.txt", "utf8");
 routesData = parse(routesFile, {columns: true});
+console.log("Loaded routes data.");
 
 stopsFile = fs.readFileSync("./data/stops.txt", "utf8");
 stopsData = parse(stopsFile, {columns: true});
+console.log("Loaded stops data.");
 
 tripsFile = fs.readFileSync("./data/trips.txt", "utf8");
 tripsData = parse(tripsFile, {columns: true});
+console.log("Loaded trips data.");
 
 arrivalsFile = fs.readFileSync("./data/stop_times.txt");
 arrivalsData = parse(arrivalsFile, {columns: true});
+console.log("Loaded stop times data.");
 
 const lastUpdated = util.getLastUpdated();
 
